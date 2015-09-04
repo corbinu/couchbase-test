@@ -134,22 +134,6 @@ while [ $COUCHBASERESPONSIVE != 1 ]; do
 done
 echo
 
-export CB_SERVICES=""
-if [ "$COUCHBASE_SERVICE_INDEX" == "True" ];
-    then
-    CB_SERVICES+=",index"
-fi
-if [ "$COUCHBASE_SERVICE_QUERY" == "True" ];
-    then
-    CB_SERVICES+=",query"
-fi
-if [ "$COUCHBASE_SERVICE_DATA" == "True" ];
-    then
-    CB_SERVICES+=",data"
-fi
-
-export CB_SERVICES=$(echo "$CB_SERVICES" | sed "s/,,/,/" | sed "s/,$//" | sed "s/^,//")
-
 if [ "$1" = 'bootstrap' ]
 then
     echo '#'
@@ -165,7 +149,7 @@ then
             --cluster-username=$CB_USERNAME \
             --cluster-password=$CB_PASSWORD \
             --cluster-port=8091 \
-            --services=$CB_SERVICES \
+            --services=index,query,data \
             --cluster-index-ramsize=$INDEXMEMORY \
             --cluster-ramsize=$AMOUNT_MEMORY
 
