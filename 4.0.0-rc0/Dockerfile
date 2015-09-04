@@ -1,7 +1,7 @@
 #
 # Couchbase Test
 #
-FROM 		couchbase/server:enterprise-4.0.0-rc0
+FROM 		couchbase/server:enterprise-4.0.0-3508
 MAINTAINER 	Corbin Uselton <corbinu@decimal.io>
 
 ENV CB_USERNAME Administrator
