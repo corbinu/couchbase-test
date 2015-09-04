@@ -14,8 +14,6 @@ else
     export PUBLIC_IP=$PRIVATE_IP
 fi
 
-export BUCKET=$2
-
 if [[ $CB_BUCKET_MEM && ${CB_BUCKET_MEM-x} ]]
     then
     export AMOUNT_MEMORY=$CB_BUCKET_MEM
