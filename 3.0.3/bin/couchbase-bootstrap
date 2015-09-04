@@ -14,27 +14,20 @@ else
     export PUBLIC_IP=$PRIVATE_IP
 fi
 
-export AMOUNT_MEMORY=$(free -m | grep -o "Mem:\s*[0-9]*" | grep -o "[0-9]*")
-export NUM_CPUS=$(nproc)
-export NUM_CPUS=$(($NUM_CPUS>12?$(($AMOUNT_MEMORY/3072)):$NUM_CPUS))
-export NUM_CPUS=$(($NUM_CPUS>1?$NUM_CPUS:1))
-export COUCHBASE_NS_SERVER_VM_EXTRA_ARGS=$(printf '["+S", "%s"]' $NUM_CPUS)
-export ERL_AFLAGS="+S $NUM_CPUS"
-export GOMAXPROCS=$NUM_CPUS
 export BUCKET=$2
 
 if [[ $CB_BUCKET_MEM && ${CB_BUCKET_MEM-x} ]]
     then
     export AMOUNT_MEMORY=$CB_BUCKET_MEM
 else
-    export AMOUNT_MEMORY=$((($AMOUNT_MEMORY/10)*6))
+    export AMOUNT_MEMORY=256
 fi
 
 if [[ $CB_INDEX_MEM && ${CB_INDEX_MEM-x} ]]
     then
     export INDEXMEMORY=$CB_INDEX_MEM
 else
-    export INDEXMEMORY=$((($AMOUNT_MEMORY/10)*2))
+    export INDEXMEMORY=256
 fi
 
 if [ $INDEXMEMORY -lt 256 ]
