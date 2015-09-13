@@ -28,6 +28,13 @@ else
     export INDEXMEMORY=256
 fi
 
+if [[ $CB_INDEXER_THREADS && ${CB_INDEXER_THREADS-x} ]]
+    then
+    export CB_INDEXER_THREADS=$CB_INDEXER_THREADS
+else
+    export CB_INDEXER_THREADS=2
+fi
+
 if [ $INDEXMEMORY -lt 256 ]
     then
     export INDEXMEMORY=256
@@ -118,10 +125,12 @@ COUCHBASERESPONSIVE=0
 while [ $COUCHBASERESPONSIVE != 1 ]; do
     echo -n '.'
 
-    /opt/couchbase/bin/couchbase-cli node-init -c 127.0.0.1:8091 -u access -p password \
-        --node-init-data-path=/opt/couchbase/var/lib/couchbase/data \
-        --node-init-index-path=/opt/couchbase/var/lib/couchbase/data \
-        --node-init-hostname=$PRIVATE_IP
+    curl -s -u Administrator:password -X POST http://127.0.0.1:8091/nodes/self/controller/settings \
+            -d path=/opt/couchbase/var/lib/couchbase/data \
+            -d index_path=/opt/couchbase/var/lib/couchbase/data
+
+    curl -s -u Administrator:password -X POST http://127.0.0.1:8091/node/controller/rename \
+            -d hostname=$PRIVATE_IP
 
     if [ $? -eq 0 ]
     then
@@ -143,13 +152,22 @@ then
     while [ $COUCHBASERESPONSIVE != 1 ]; do
         echo -n '.'
 
-        /opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091 -u access -p password \
-            --cluster-username=$CB_USERNAME \
-            --cluster-password=$CB_PASSWORD \
-            --cluster-port=8091 \
-            --services=index,query,data \
-            --cluster-index-ramsize=$INDEXMEMORY \
-            --cluster-ramsize=$AMOUNT_MEMORY
+        curl -s -u Administrator:password -X POST http://127.0.0.1:8091/pools/default \
+                -d memoryQuota=$AMOUNT_MEMORY &> /dev/null
+
+        curl -s -u $CB_USERNAME:$CB_PASSWORD -X POST http://127.0.0.1:8091/pools/default \
+                -d indexMemoryQuota=$INDEXMEMORY &> /dev/null
+
+        curl -s -u $CB_USERNAME:$CB_PASSWORD -X POST http://127.0.0.1:8091/settings/indexes \
+                -d indexerThreads=$CB_INDEXER_THREADS &> /dev/null
+
+        curl -s -u $CB_USERNAME:$CB_PASSWORD -X POST http://127.0.0.1:8091/node/controller/setupServices \
+                -d services=$CB_SERVICES &> /dev/null
+
+        curl -s -u $CB_USERNAME:$CB_PASSWORD -X POST http://127.0.0.1:8091/settings/web \
+                -d password=$CB_PASSWORD \
+                -d username=$CB_USERNAME \
+                -d port=8091 &> /dev/null
 
         if [ $? -eq 0 ]
         then
@@ -172,12 +190,14 @@ then
             echo '#'
 
             # creating the bucket
-
-            /opt/couchbase/bin/couchbase-cli bucket-create -c 127.0.01:8091 -u $CB_USERNAME -p $CB_PASSWORD \
-                --bucket=$BUCKET \
-                --bucket-type=couchbase \
-                --bucket-ramsize=$AMOUNT_MEMORY \
-                --bucket-replica=1
+            curl -s -u $CB_USERNAME:$CB_PASSWORD -X POST http://127.0.0.1:8091/pools/default/buckets \
+                  -d flushEnabled=0 \
+                  -d replicaNumber=0 \
+                  -d evictionPolicy=valueOnly \
+                  -d ramQuotaMB=$AMOUNT_MEMORY \
+                  -d bucketType=couchbase \
+                  -d name=$BUCKET \
+                  -d authType=sasl
         fi
 
         if [ $? -eq 0 ]
