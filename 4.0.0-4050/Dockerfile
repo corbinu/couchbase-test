@@ -5,10 +5,17 @@ FROM ubuntu:12.04
 MAINTAINER 	Corbin Uselton <corbinu@decimal.io>
 
 # Install dependencies
-RUN apt-get update && \
-    apt-get install -yq runit wget python-httplib2  && \
-    apt-get autoremove && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01norecommends \
+    && echo "APT::Install-Suggests 0;" >> /etc/apt/apt.conf.d/01norecommends \
+    && apt-get update \
+    && apt-get install -y python-software-properties \
+    && add-apt-repository -y ppa:costamagnagianfranco/ettercap-stable-backports \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends curl runit wget python-httplib2 \
+    && apt-get remove -y python-software-properties \
+    && apt-get autoremove -y \
+    && apt-get autoremove && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY couchbase-server-enterprise_4.0.0-4050-ubuntu12.04_amd64.deb .
 
