@@ -1,17 +1,17 @@
 #
 # Couchbase Test
 #
-FROM 		couchbase/server:enterprise-4.0.0-rc0
+FROM 		couchbase/server:enterprise-4.5.1
 MAINTAINER 	Corbin Uselton <corbinu@decimal.io>
 
 RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01norecommends \
     && echo "APT::Install-Suggests 0;" >> /etc/apt/apt.conf.d/01norecommends \
     && apt-get update \
-    && apt-get install -y python-software-properties \
+    && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:costamagnagianfranco/ettercap-stable-backports \
     && apt-get update \
     && apt-get install -y --no-install-recommends curl \
-    && apt-get remove -y python-software-properties \
+    && apt-get remove -y software-properties-common \
     && apt-get autoremove -y
 
 ENV CB_USERNAME Administrator
