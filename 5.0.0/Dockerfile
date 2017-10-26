@@ -15,7 +15,7 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01norecommends \
     && apt-get autoremove -y
 
 ENV CB_USERNAME Administrator
-ENV CB_PASSWORD password
+ENV CB_PASSWORD administrator
 
 COPY bin/* /usr/local/bin/
 
